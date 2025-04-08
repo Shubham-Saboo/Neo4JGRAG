@@ -1,6 +1,7 @@
 # Neo4j Graph RAG Application
 
 A Graph RAG (Retrieval-Augmented Generation) application using Neo4j as the knowledge graph and OpenAI for text generation.
+<img width="1421" alt="Screenshot 2025-04-08 at 15 03 29" src="https://github.com/user-attachments/assets/c4c76371-5c1f-41e0-8dc2-7d3358fc6055" />
 
 ## Prerequisites
 
