@@ -75,7 +75,7 @@ This will:
 To start the RAG application:
 
 ```bash
-python rag_app.py
+streamlit run rag_app.py
 ```
 
 ## Project Structure
@@ -97,6 +97,3 @@ If you encounter any issues:
 4. Try running the test connection script to identify any connection issues
 5. Make sure all dependencies are installed correctly
 
-## License
-
-[Your License Here] 
