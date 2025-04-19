@@ -6,9 +6,18 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from dotenv import load_dotenv
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
+
+# Initialize session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # Set page config
 st.set_page_config(
@@ -71,16 +80,18 @@ def get_relevant_context(question: str) -> str:
             return "\n".join(context) if context else "No relevant context found."
             
     except Exception as e:
-        print(f"Error retrieving context: {e}")
+        logger.error(f"Error retrieving context: {e}")
         return "Error retrieving context."
     finally:
-        driver.close()
+        if 'driver' in locals():
+            driver.close()
 
 # Define the prompt template
 template = """You are a helpful supply chain assistant. Use the following context to answer the question.
 If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
 
-Context: {context}
+Current context:
+{context}
 
 Question: {question}
 
@@ -90,7 +101,10 @@ prompt = ChatPromptTemplate.from_template(template)
 
 # Create the RAG chain
 rag_chain = (
-    {"context": lambda x: get_relevant_context(x), "question": RunnablePassthrough()}
+    {
+        "context": lambda x: get_relevant_context(x["question"]),
+        "question": lambda x: x["question"]
+    }
     | prompt
     | llm
     | StrOutputParser()
@@ -99,8 +113,11 @@ rag_chain = (
 def ask_question(question: str) -> str:
     """Ask a question about the supply chain data."""
     try:
-        return rag_chain.invoke(question)
+        # Get response from RAG chain
+        response = rag_chain.invoke({"question": question})
+        return response
     except Exception as e:
+        logger.error(f"Error processing question: {e}")
         return f"Error processing question: {e}"
 
 # Streamlit UI
@@ -127,10 +144,6 @@ with st.sidebar:
     - What audio products are available?
     - Tell me about the supply chain for tablets
     """)
-
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
 # Display chat messages from history
 for message in st.session_state.messages:
